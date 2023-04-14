@@ -3,4 +3,8 @@ export interface ErrorType {
   message: string;
 }
 
-export type Source = "glosbe" | "oxford";
+export type Source = "glosbe" | "oxford" | "cambridge";
+
+export type LanguagePairs = "vi-en" | "en-vi" | "en-en";
+
+export type Language = "en" | "vi";

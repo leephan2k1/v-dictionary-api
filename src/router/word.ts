@@ -1,11 +1,21 @@
 import Router from "express-promise-router";
-import { search, getWordDetail, getAudio } from "../controllers/wordController";
+import {
+  search,
+  getWordDetail,
+  getAudio,
+  getWordDetailByMachine,
+  getGrammar,
+} from "../controllers/wordController";
 
 const router = Router();
 
 router.get("/words/search", search);
 
-router.get("/words/detail/:word", getWordDetail);
+router.get("/words/translate/:word", getWordDetail);
+
+router.get("/words/machine_translation/:word", getWordDetailByMachine);
+
+router.get("/words/grammar/:word", getGrammar);
 
 router.get("/words/audio/:word", getAudio);
 
