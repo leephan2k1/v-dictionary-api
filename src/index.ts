@@ -4,11 +4,13 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import route from "./router";
 import type { Request, Response, NextFunction } from "express";
 import type { ErrorType } from "./types";
+import cors from "cors";
 
 const prisma = new PrismaClient();
 const app = express();
 const PORT = 5001;
 
+app.use(cors());
 app.use(express.json());
 
 //routers
