@@ -16,8 +16,6 @@ export async function getAudioCambridge({ word }: { word: string }) {
 
     const document = parse(raw_phonetics);
 
-    console.log("document: ", document);
-
     const uk_audio =
       String(CAMBRIDGE_DICTIONARY_URL) +
       document.querySelector("#audio1 source")?.getAttribute("src");
@@ -25,9 +23,14 @@ export async function getAudioCambridge({ word }: { word: string }) {
       "#page-content > div.page > div:nth-child(1) > div.link > div > div.di-body > div > div > div:nth-child(1) > div.pos-header.dpos-h > span.uk.dpron-i > span.pron.dpron"
     )?.textContent;
 
-    const us_audio =
-      String(CAMBRIDGE_DICTIONARY_URL) +
-      document.querySelector("#audio2 source")?.getAttribute("src");
+    const raw_us_audio = document
+      .querySelector("#audio2 source")
+      ?.getAttribute("src");
+
+    if (!raw_us_audio) return null;
+
+    const us_audio = String(CAMBRIDGE_DICTIONARY_URL) + raw_us_audio;
+
     const us_phonetic = document.querySelector(
       "#page-content > div.page > div:nth-child(1) > div.link > div > div.di-body > div > div > div:nth-child(1) > div.pos-header.dpos-h > span.us.dpron-i > span.pron.dpron"
     )?.textContent;
