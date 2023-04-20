@@ -1,5 +1,6 @@
 import Router from "express-promise-router";
 import passport from "passport";
+import type { NextFunction, Request, Response } from "express";
 
 const router = Router();
 
@@ -7,6 +8,22 @@ router.get(
   "/login/google",
   passport.authenticate("google", { scope: ["profile", "email"] })
 );
+
+router.get("/logout", (req: Request, res: Response, next: NextFunction) => {
+  req.logOut((err) => {
+    if (err) {
+      console.log("err:: ", err);
+      return next(err);
+    }
+
+    req?.session?.destroy((err) => {
+      if (err) console.error(err);
+    });
+
+    res.clearCookie("connect.sid");
+    return res.status(200).json({ status: "success" });
+  });
+});
 
 router.get(
   "/auth/google/callback",
