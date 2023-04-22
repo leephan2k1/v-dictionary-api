@@ -4,6 +4,7 @@ import type { Language } from "../types";
 import { parse } from "node-html-parser";
 import { normalizeString } from "../utils/string";
 import { translate } from "@vitalets/google-translate-api";
+import { googleTranslate } from "./google.dictionary";
 
 export async function getAudioGlosbe({
   format,
@@ -181,11 +182,15 @@ export async function machineTranslation({
           }
         )
       ).data,
-      await translate(word, { to: language_2 }),
+      await googleTranslate({
+        text: word,
+        source_language: language_1,
+        target_language: language_2,
+      }),
     ]);
 
     if (glosbe.status === "fulfilled" && google.status === "fulfilled") {
-      return { glosbe: glosbe.value?.translation, google: google.value.text };
+      return { glosbe: glosbe.value?.translation, google: google.value };
     } else {
       return null;
     }
