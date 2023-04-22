@@ -13,7 +13,7 @@ router.get("/words/search", search);
 
 router.get("/words/translate/:word", getWordDetail);
 
-router.get("/words/machine_translation/:word", getWordDetailByMachine);
+router.post("/words/machine_translation", getWordDetailByMachine);
 
 router.get("/words/grammar/:word", getGrammar);
 

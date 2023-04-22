@@ -110,22 +110,22 @@ export async function getGrammar(
 }
 
 export async function getWordDetailByMachine(
-  req: Request<Pick<SearchQuery, "word">, {}, {}, Pick<SearchQuery, "format">>,
+  req: Request<{}, {}, { sentence: string }, Pick<SearchQuery, "format">>,
   res: Response,
   next: NextFunction
 ) {
-  const { word } = req.params;
+  const { sentence } = req.body;
   const { format } = req.query;
   const _format_ = format.split("-");
 
-  if (!word) throw new Error("word missing");
+  if (!sentence) throw new Error("word missing");
   if (!format) throw new Error("format missing");
 
   try {
     const resData = await machineTranslation({
       language_1: _format_[0] as Language,
       language_2: _format_[1] as Language,
-      word,
+      word: sentence,
     });
 
     if (resData) {
