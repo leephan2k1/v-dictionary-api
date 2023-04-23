@@ -9,16 +9,32 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String?
-  image     String?
-  name      String?
-  accountId String?  @unique
-  provider  String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                 String               @id @default(cuid())
+  email              String?
+  image              String?
+  name               String?
+  accountId          String?              @unique
+  provider           String
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  translationHistory TranslationHistory[]
 
   @@unique([email, accountId])
+}
+
+model TranslationHistory {
+  id              String   @id @default(cuid())
+  currentLanguage String
+  targetLanguage  String
+  word            String
+  sense           String
+  users           User     @relation(fields: [userId], references: [id])
+  userId          String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([userId, word])
+  @@index([userId])
 }
 
 // use for express session:
