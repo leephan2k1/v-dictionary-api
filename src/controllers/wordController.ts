@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { NextFunction, Request, Response } from "express";
-
+import { prisma } from "../utils/prismaClient";
 import { GLOSBE_API } from "../configs";
 import {
   translateWordGlosbe,
@@ -10,6 +10,7 @@ import {
   translateCambridge,
 } from "../libs";
 import { getAudioInfo } from "../utils/getAudio";
+import { createManySense } from "../utils/createHelper";
 
 import type { Language, LanguagePairs, Source } from "../types";
 interface SearchQuery {
@@ -69,24 +70,125 @@ export async function getWordDetail(
     if (!word) throw new Error("word missing");
     if (!format) throw new Error("format missing");
 
+    //get word from "cache":
+    const wordDb = await prisma.word.findUnique({
+      where: { wordContent: word },
+      include: {
+        examples: true,
+        senses: { include: { example: true, typeOfWord: true } },
+        less_frequent_senses: true,
+        similar_phrases: true,
+        typesOfWord: { select: { type: true } },
+      },
+    });
+
+    //"cache hit"
+    if (wordDb) {
+      return res.status(200).json({
+        ...wordDb,
+        typesOfWord: wordDb.typesOfWord.map((e) => e.type),
+        senses: wordDb.senses.map((s) => ({
+          ...s,
+          typeOfWord: s.typeOfWord?.type,
+        })),
+        less_frequent_senses: wordDb.less_frequent_senses.map((e) => e.sense),
+      });
+    }
+
+    //@ts-ignore
+    let resData;
+    console.time(`time scrape ${word}`);
     if (format === "en-en") {
       if (source === "cambridge") {
-        const resData = await translateCambridge({ word });
-        if (resData) return res.status(200).json(resData);
+        resData = await translateCambridge({ word });
       } else {
-        const resData = await translateOxford({ word });
-        if (resData) return res.status(200).json(resData);
+        resData = await translateOxford({ word });
       }
     } else {
-      const resData = await translateWordGlosbe({
+      resData = await translateWordGlosbe({
         language_1: _format_[0] as Language,
         language_2: _format_[1] as Language,
         word,
       });
-      if (resData) return res.status(200).json(resData);
     }
+    console.timeEnd(`time scrape ${word}`);
 
-    return res.status(404).json({ message: "word detail not found" });
+    if (resData) {
+      //cache data:
+      try {
+        setTimeout(async () => {
+          const word = await prisma.word.create({
+            data: {
+              format,
+              //@ts-ignore
+              wordContent: resData.wordContent,
+
+              typesOfWord:
+                //@ts-ignore
+                resData.typesOfWord && resData.typesOfWord.length > 0
+                  ? {
+                      createMany: {
+                        //@ts-ignore
+                        data: resData.typesOfWord.map((e) => ({ type: e })),
+                        skipDuplicates: true,
+                      },
+                    }
+                  : undefined,
+              less_frequent_senses:
+                //@ts-ignore
+                resData?.less_frequent_senses &&
+                //@ts-ignore
+                resData?.less_frequent_senses.length > 0
+                  ? {
+                      createMany: {
+                        //@ts-ignore
+                        data: resData?.less_frequent_senses.map((e) => ({
+                          sense: e,
+                        })),
+                      },
+                    }
+                  : undefined,
+              similar_phrases:
+                //@ts-ignore
+                resData?.similar_phrases && resData?.similar_phrases.length > 0
+                  ? {
+                      createMany: {
+                        //@ts-ignore
+                        data: resData?.similar_phrases.map((e) => ({
+                          en: e.en,
+                          vi: e.vi,
+                        })),
+                      },
+                    }
+                  : undefined,
+              examples:
+                //@ts-ignore
+                resData?.examples && resData.examples.length > 0
+                  ? {
+                      createMany: {
+                        //@ts-ignore
+                        data: resData.examples.map((e) => ({
+                          en: e.en,
+                          vi: e.vi,
+                          keyword_en: e?.keyword_en,
+                          keyword_vi: e?.keyword_vi,
+                        })),
+                      },
+                    }
+                  : undefined,
+            },
+          });
+          //@ts-ignore
+          await createManySense(resData.senses, word.id);
+        }, 500);
+      } catch (error) {
+        console.log("cache ERROR: ", error);
+      }
+
+      return res.status(200).json(resData);
+    } else {
+      return res.status(404).json({ message: "word detail not found" });
+    }
   } catch (error) {
     console.log("getWordDetail: ", error);
     next();
