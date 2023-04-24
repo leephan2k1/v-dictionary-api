@@ -10,7 +10,7 @@ import {
   translateCambridge,
 } from "../libs";
 import { getAudioInfo } from "../utils/getAudio";
-import { createManySense } from "../utils/createHelper";
+import { createManySense, connectTypeOfWord } from "../utils/dbHelper";
 
 import type { Language, LanguagePairs, Source } from "../types";
 interface SearchQuery {
@@ -117,69 +117,80 @@ export async function getWordDetail(
       //cache data:
       try {
         setTimeout(async () => {
-          const word = await prisma.word.create({
-            data: {
-              format,
-              //@ts-ignore
-              wordContent: resData.wordContent,
-
-              typesOfWord:
+          const [word] = await prisma.$transaction([
+            prisma.word.create({
+              data: {
+                format,
+                //@ts-ignore
+                wordContent: resData.wordContent,
+                less_frequent_senses:
+                  //@ts-ignore
+                  resData?.less_frequent_senses &&
+                  //@ts-ignore
+                  resData?.less_frequent_senses.length > 0
+                    ? {
+                        createMany: {
+                          //@ts-ignore
+                          data: resData?.less_frequent_senses.map((e) => ({
+                            sense: e,
+                          })),
+                        },
+                      }
+                    : undefined,
+                similar_phrases:
+                  //@ts-ignore
+                  resData?.similar_phrases &&
+                  resData?.similar_phrases.length > 0
+                    ? {
+                        createMany: {
+                          //@ts-ignore
+                          data: resData?.similar_phrases.map((e) => ({
+                            en: e.en,
+                            vi: e.vi,
+                          })),
+                        },
+                      }
+                    : undefined,
+                examples:
+                  //@ts-ignore
+                  resData?.examples && resData.examples.length > 0
+                    ? {
+                        createMany: {
+                          //@ts-ignore
+                          data: resData.examples.map((e) => ({
+                            en: e.en,
+                            vi: e.vi,
+                            keyword_en: e?.keyword_en,
+                            keyword_vi: e?.keyword_vi,
+                          })),
+                        },
+                      }
+                    : undefined,
+              },
+            }),
+            prisma.typeOfWord.createMany({
+              data:
                 //@ts-ignore
                 resData.typesOfWord && resData.typesOfWord.length > 0
-                  ? {
-                      createMany: {
-                        //@ts-ignore
-                        data: resData.typesOfWord.map((e) => ({ type: e })),
-                        skipDuplicates: true,
-                      },
-                    }
+                  ? //@ts-ignore
+                    resData.typesOfWord.map((e) => ({ type: e }))
                   : undefined,
-              less_frequent_senses:
-                //@ts-ignore
-                resData?.less_frequent_senses &&
-                //@ts-ignore
-                resData?.less_frequent_senses.length > 0
-                  ? {
-                      createMany: {
-                        //@ts-ignore
-                        data: resData?.less_frequent_senses.map((e) => ({
-                          sense: e,
-                        })),
-                      },
-                    }
-                  : undefined,
-              similar_phrases:
-                //@ts-ignore
-                resData?.similar_phrases && resData?.similar_phrases.length > 0
-                  ? {
-                      createMany: {
-                        //@ts-ignore
-                        data: resData?.similar_phrases.map((e) => ({
-                          en: e.en,
-                          vi: e.vi,
-                        })),
-                      },
-                    }
-                  : undefined,
-              examples:
-                //@ts-ignore
-                resData?.examples && resData.examples.length > 0
-                  ? {
-                      createMany: {
-                        //@ts-ignore
-                        data: resData.examples.map((e) => ({
-                          en: e.en,
-                          vi: e.vi,
-                          keyword_en: e?.keyword_en,
-                          keyword_vi: e?.keyword_vi,
-                        })),
-                      },
-                    }
-                  : undefined,
-            },
-          });
+              skipDuplicates: true,
+            }),
+          ]);
+
           //@ts-ignore
-          await createManySense(resData.senses, word.id);
+          if (resData.typesOfWord && resData.typesOfWord.length > 0) {
+            await Promise.allSettled([
+              //@ts-ignore
+              await connectTypeOfWord(resData.typesOfWord, word.wordContent),
+              //@ts-ignore
+              await createManySense(resData.senses, word.id),
+            ]);
+          } else {
+            //@ts-ignore
+            await createManySense(resData.senses, word.id);
+          }
         }, 500);
       } catch (error) {
         console.log("cache ERROR: ", error);

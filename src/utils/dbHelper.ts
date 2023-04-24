@@ -28,3 +28,16 @@ export async function createManySense(senses, wordId) {
     })
   );
 }
+
+export async function connectTypeOfWord(typesOfWord, word) {
+  await prisma.$transaction(
+    typesOfWord.map((type) => {
+      return prisma.word.update({
+        where: { wordContent: word },
+        data: {
+          typesOfWord: { connect: { type } },
+        },
+      });
+    })
+  );
+}
