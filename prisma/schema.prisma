@@ -37,6 +37,13 @@ model Word {
   @@index([wordContent])
 }
 
+model TypeOfWord {
+  id    String  @id @default(cuid())
+  type  String  @unique
+  Word  Word[]
+  Sense Sense[]
+}
+
 model WordExample {
   id         String  @id @default(cuid())
   en         String  @db.Text
@@ -81,16 +88,6 @@ model SimilarPhrase {
   Sense  Sense?
   Word   Word?   @relation(fields: [wordId], references: [id])
   wordId String?
-
-  @@index([wordId])
-}
-
-model TypeOfWord {
-  id     String  @id @default(cuid())
-  type   String  @unique
-  Word   Word?   @relation(fields: [wordId], references: [id])
-  wordId String?
-  Sense  Sense[]
 
   @@index([wordId])
 }
