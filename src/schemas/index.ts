@@ -2,6 +2,16 @@ import { z } from "zod";
 
 export const TranslationHistorySchema = z.object({
   body: z.object({
+    translations_history: z
+      .array(
+        z.object({
+          word: z.string(),
+          sense: z.string(),
+          targetLanguage: z.string(),
+          currentLanguage: z.string(),
+        })
+      )
+      .optional(),
     word: z.string({
       required_error: "word is required",
     }),

@@ -19,6 +19,7 @@ interface TranslationHistoryBody {
   sense: string;
   currentLanguage: string;
   targetLanguage: string;
+  translations_history: TranslationHistoryBody[];
 }
 
 export async function handleCreateTranslationHistory(
@@ -26,10 +27,29 @@ export async function handleCreateTranslationHistory(
   res: Response,
   next: NextFunction
 ) {
-  const { word, sense, currentLanguage, targetLanguage } = req.body;
+  const { word, sense, currentLanguage, targetLanguage, translations_history } =
+    req.body;
   const { user } = req;
 
   try {
+    //multiple create:
+    if (translations_history && translations_history.length > 0) {
+      const tHistory = await prisma.translationHistory.createMany({
+        data: translations_history.map((e) => ({
+          word: e.word,
+          sense: e.sense,
+          currentLanguage: e.currentLanguage,
+          targetLanguage: e.targetLanguage,
+          //@ts-ignore
+          userId: user.id,
+        })),
+        skipDuplicates: true,
+      });
+
+      return res.status(201).json(tHistory);
+    }
+
+    //single create:
     const tHistory = await prisma.translationHistory.upsert({
       where: {
         userId_word: {
