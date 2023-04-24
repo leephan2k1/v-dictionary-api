@@ -22,6 +22,79 @@ model User {
   @@unique([email, accountId])
 }
 
+model Word {
+  id                   String              @id @default(cuid())
+  format               String
+  wordContent          String              @unique
+  typesOfWord          TypeOfWord[]
+  senses               Sense[]
+  less_frequent_senses LessFrequentSense[]
+  similar_phrases      SimilarPhrase[]
+  examples             WordExample[]
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  @@index([wordContent])
+}
+
+model WordExample {
+  id         String  @id @default(cuid())
+  en         String  @db.Text
+  vi         String  @db.Text
+  keyword_en String?
+  keyword_vi String?
+  Word       Word?   @relation(fields: [wordId], references: [id])
+  wordId     String?
+
+  @@index([wordId])
+}
+
+model LessFrequentSense {
+  id     String  @id @default(cuid())
+  sense  String
+  Word   Word?   @relation(fields: [wordId], references: [id])
+  wordId String?
+
+  @@index([wordId])
+}
+
+model Sense {
+  id              String         @id @default(cuid())
+  sense           String?
+  typeOfWord      TypeOfWord?    @relation(fields: [typeOfWordId], references: [id])
+  example         SimilarPhrase? @relation(fields: [similarPhraseId], references: [id])
+  Word            Word?          @relation(fields: [wordId], references: [id])
+  category        String?
+  typeOfWordId    String?
+  similarPhraseId String?        @unique
+  wordId          String?
+
+  @@index([typeOfWordId])
+  @@index([similarPhraseId])
+  @@index([wordId])
+}
+
+model SimilarPhrase {
+  id     String  @id @default(cuid())
+  en     String
+  vi     String
+  Sense  Sense?
+  Word   Word?   @relation(fields: [wordId], references: [id])
+  wordId String?
+
+  @@index([wordId])
+}
+
+model TypeOfWord {
+  id     String  @id @default(cuid())
+  type   String  @unique
+  Word   Word?   @relation(fields: [wordId], references: [id])
+  wordId String?
+  Sense  Sense[]
+
+  @@index([wordId])
+}
+
 model TranslationHistory {
   id              String   @id @default(cuid())
   currentLanguage String
