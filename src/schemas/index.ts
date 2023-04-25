@@ -35,3 +35,17 @@ export const DeleteTranslationHistorySchema = z.object({
     deleteOption: z.string().optional(),
   }),
 });
+
+export const FavoriteBodySchema = z.object({
+  body: z.object({
+    word: z.string({ required_error: "word is required" }),
+    tag: z.string().optional(),
+    numberOfDaysToForget: z.number().optional(),
+  }),
+});
+
+export const FavoriteQuerySchema = z.object({
+  query: z.object({
+    word: z.string({ required_error: "word is required" }),
+  }),
+});
