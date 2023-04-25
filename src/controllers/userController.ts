@@ -22,6 +22,99 @@ interface TranslationHistoryBody {
   translations_history: TranslationHistoryBody[];
 }
 
+export async function handleDeleteFavorite(
+  req: Request<{}, {}, { word: string }>,
+  res: Response,
+  next: NextFunction
+) {
+  const { word } = req.body;
+  const { user } = req;
+
+  try {
+    const deletedStatus = await prisma.practice.delete({
+      where: {
+        userId_wordContent: {
+          //@ts-ignore
+          userId: user.id,
+          wordContent: word,
+        },
+      },
+    });
+
+    return res.status(200).json(deletedStatus);
+  } catch (error) {
+    console.error(`handleCreateFavorite: ${error}`);
+    next("handleCreateFavorite ERROR");
+  }
+}
+
+export async function handleCreateFavorite(
+  req: Request<
+    {},
+    {},
+    { word: string; tag?: string; numberOfDaysToForget?: number }
+  >,
+  res: Response,
+  next: NextFunction
+) {
+  const { word, numberOfDaysToForget, tag } = req.body;
+  const { user } = req;
+
+  try {
+    const practiceWord = await prisma.practice.upsert({
+      where: {
+        userId_wordContent: {
+          //@ts-ignore
+          userId: user.id,
+          wordContent: word,
+        },
+      },
+      create: {
+        word: { connect: { wordContent: word } },
+        //@ts-ignore
+        user: { connect: { id: user.id } },
+        numberOfDaysToForget,
+        tag,
+      },
+      update: {},
+    });
+
+    return res.status(201).json(practiceWord);
+  } catch (error) {
+    console.error(`handleCreateFavorite: ${error}`);
+    next("handleCreateFavorite ERROR");
+  }
+}
+
+export async function handleGetInfoFavorite(
+  req: Request<{}, {}, {}, { word: string }>,
+  res: Response,
+  next: NextFunction
+) {
+  const { word } = req.query;
+  const { user } = req;
+
+  try {
+    const practiceWord = await prisma.practice.findUnique({
+      where: {
+        userId_wordContent: {
+          //@ts-ignore
+          userId: user.id,
+          wordContent: word,
+        },
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    return res.status(200).json(practiceWord);
+  } catch (error) {
+    console.error(`handleGetInfoFavorite: ${error}`);
+    next("handleGetInfoFavorite ERROR");
+  }
+}
+
 export async function handleCreateTranslationHistory(
   req: Request<{}, {}, TranslationHistoryBody, {}>,
   res: Response,
