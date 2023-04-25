@@ -70,6 +70,23 @@ export async function getWordDetail(
     if (!word) throw new Error("word missing");
     if (!format) throw new Error("format missing");
 
+    //@ts-ignore
+    let resData;
+
+    if (format === "en-en") {
+      if (source === "cambridge") {
+        resData = await translateCambridge({ word });
+      } else {
+        resData = await translateOxford({ word });
+      }
+
+      if (resData) {
+        return res.status(200).json(resData);
+      } else {
+        throw new Error();
+      }
+    }
+
     //get word from "cache":
     const wordDb = await prisma.word.findUnique({
       where: { wordContent: word },
@@ -95,22 +112,12 @@ export async function getWordDetail(
       });
     }
 
-    //@ts-ignore
-    let resData;
     console.time(`time scrape ${word}`);
-    if (format === "en-en") {
-      if (source === "cambridge") {
-        resData = await translateCambridge({ word });
-      } else {
-        resData = await translateOxford({ word });
-      }
-    } else {
-      resData = await translateWordGlosbe({
-        language_1: _format_[0] as Language,
-        language_2: _format_[1] as Language,
-        word,
-      });
-    }
+    resData = await translateWordGlosbe({
+      language_1: _format_[0] as Language,
+      language_2: _format_[1] as Language,
+      word,
+    });
     console.timeEnd(`time scrape ${word}`);
 
     if (resData) {
@@ -174,7 +181,7 @@ export async function getWordDetail(
                 resData.typesOfWord && resData.typesOfWord.length > 0
                   ? //@ts-ignore
                     resData.typesOfWord.map((e) => ({ type: e }))
-                  : undefined,
+                  : [],
               skipDuplicates: true,
             }),
           ]);
