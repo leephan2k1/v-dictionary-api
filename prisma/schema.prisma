@@ -8,6 +8,14 @@ datasource db {
   relationMode = "prisma"
 }
 
+enum PracticeStatus {
+  FORGOT
+  HARD_TO_REMEMBER
+  NOT_PRACTICE
+  REMEMBERED
+  TEMPORARILY_FORGET
+}
+
 model User {
   id                 String               @id @default(cuid())
   email              String?
@@ -18,8 +26,28 @@ model User {
   createdAt          DateTime             @default(now())
   updatedAt          DateTime             @updatedAt
   translationHistory TranslationHistory[]
+  practices          Practice[]
 
   @@unique([email, accountId])
+}
+
+model Practice {
+  id                   String         @id @default(cuid())
+  status               PracticeStatus @default(NOT_PRACTICE)
+  latestLearningTime   DateTime?
+  forgottenFrequency   Int?
+  numberOfDaysToForget Int            @default(7)
+  tag                  String         @default("default")
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  user                 User           @relation(fields: [userId], references: [id])
+  userId               String
+  word                 Word           @relation(fields: [wordContent], references: [wordContent])
+  wordContent          String
+
+  @@unique([userId, wordContent])
+  @@index([userId])
+  @@index([wordContent])
 }
 
 model Word {
@@ -33,6 +61,7 @@ model Word {
   examples             WordExample[]
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
+  practice             Practice[]
 
   @@index([wordContent])
 }
