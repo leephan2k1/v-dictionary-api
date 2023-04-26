@@ -8,6 +8,8 @@ import {
   handleGetInfoFavorite,
   handleCreateFavorite,
   handleDeleteFavorite,
+  handleGetDashboardInfo,
+  handleGetWordsPreview,
 } from "../controllers/userController";
 
 import {
@@ -15,6 +17,8 @@ import {
   DeleteTranslationHistorySchema,
   FavoriteQuerySchema,
   FavoriteBodySchema,
+  DashboardQuerySchema,
+  WordPreviewQuerySchema,
 } from "../schemas";
 
 import { validate } from "../middlewares/zodValidate";
@@ -22,6 +26,21 @@ import { validate } from "../middlewares/zodValidate";
 const router = Router();
 
 router.get("/auth/user", isUserAuthenticated, handleGetUserInfo);
+
+router.get(
+  "/users/dashboard",
+  isUserAuthenticated,
+  validate(DashboardQuerySchema),
+  handleGetDashboardInfo
+);
+
+router.get(
+  "/users/word-preview",
+  isUserAuthenticated,
+  validate(WordPreviewQuerySchema),
+  //@ts-ignore
+  handleGetWordsPreview
+);
 
 router.get(
   "/users/favorite",

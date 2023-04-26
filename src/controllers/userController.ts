@@ -22,6 +22,104 @@ interface TranslationHistoryBody {
   translations_history: TranslationHistoryBody[];
 }
 
+export async function handleGetWordsPreview(
+  req: Request<
+    {},
+    {},
+    {},
+    { status: string; tag?: string; page?: number; limit?: number }
+  >,
+  res: Response,
+  next: NextFunction
+) {
+  const { user } = req;
+  let { status, page, tag, limit } = req.query;
+
+  if (!page) page = 1;
+  if (!limit) limit = 18;
+
+  try {
+    const [words, totalRecords] = await prisma.$transaction([
+      prisma.practice.findMany({
+        where: {
+          //@ts-ignore
+          userId: user.id,
+          //@ts-ignore
+          status,
+          tag,
+        },
+        select: {
+          word: {
+            select: {
+              format: true,
+              wordContent: true,
+              senses: { select: { sense: true } },
+            },
+          },
+        },
+        take: Number(limit),
+        skip: (Number(page) - 1) * limit,
+      }),
+      prisma.practice.count({
+        where: {
+          //@ts-ignore
+          userId: user.id,
+          //@ts-ignore
+          status,
+          tag,
+        },
+      }),
+    ]);
+
+    return res
+      .status(200)
+      .json({ words, totalPages: Math.ceil(totalRecords / limit) });
+  } catch (error) {
+    console.error(`handleGetWordsPreview: ${error}`);
+    next("handleGetWordsPreview ERROR");
+  }
+}
+
+export async function handleGetDashboardInfo(
+  req: Request<{}, {}, {}, { status: string }>,
+  res: Response,
+  next: NextFunction
+) {
+  const { user } = req;
+  const { status } = req.query;
+
+  try {
+    const [statusCounting, historyCounting, favoriteCounting, tags] =
+      await prisma.$transaction([
+        prisma.practice.count({
+          //@ts-ignore
+          where: { userId: user.id, status },
+        }),
+        prisma.translationHistory.count({
+          //@ts-ignore
+          where: { userId: user.id },
+        }),
+        prisma.practice.count({
+          //@ts-ignore
+          where: { userId: user.id },
+        }),
+        prisma.practice.findMany({
+          //@ts-ignore
+          where: { userId: user.id },
+          distinct: ["tag"],
+          select: { tag: true },
+        }),
+      ]);
+
+    return res
+      .status(200)
+      .json({ statusCounting, historyCounting, favoriteCounting, tags });
+  } catch (error) {
+    console.error(`handleGetDashboardInfo: ${error}`);
+    next("handleGetDashboardInfo ERROR");
+  }
+}
+
 export async function handleDeleteFavorite(
   req: Request<{}, {}, { word: string }>,
   res: Response,
