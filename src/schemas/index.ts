@@ -49,3 +49,15 @@ export const FavoriteQuerySchema = z.object({
     word: z.string({ required_error: "word is required" }),
   }),
 });
+
+export const DashboardQuerySchema = z.object({
+  query: z.object({
+    status: z.string({ required_error: "status is required" }),
+  }),
+});
+
+export const WordPreviewQuerySchema = z.object({
+  query: z.object({
+    status: z.string({ required_error: "status is required" }),
+  }),
+});
