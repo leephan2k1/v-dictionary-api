@@ -61,3 +61,17 @@ export const WordPreviewQuerySchema = z.object({
     status: z.string({ required_error: "status is required" }),
   }),
 });
+
+export const PracticeQuerySchema = z.object({
+  query: z.object({
+    status: z.string({ required_error: "status is required" }),
+    tags: z.string({ required_error: "tags is required" }),
+  }),
+});
+
+export const PracticePatchSchema = z.object({
+  body: z.object({
+    wordContent: z.string({ required_error: "wordContent is required" }),
+    status: z.string({ required_error: "status is required" }),
+  }),
+});
