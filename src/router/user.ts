@@ -10,6 +10,8 @@ import {
   handleDeleteFavorite,
   handleGetDashboardInfo,
   handleGetWordsPreview,
+  handleGetWordsPractice,
+  handleUpdatePracticeStatus,
 } from "../controllers/userController";
 
 import {
@@ -19,6 +21,8 @@ import {
   FavoriteBodySchema,
   DashboardQuerySchema,
   WordPreviewQuerySchema,
+  PracticeQuerySchema,
+  PracticePatchSchema,
 } from "../schemas";
 
 import { validate } from "../middlewares/zodValidate";
@@ -26,6 +30,21 @@ import { validate } from "../middlewares/zodValidate";
 const router = Router();
 
 router.get("/auth/user", isUserAuthenticated, handleGetUserInfo);
+
+router.patch(
+  "/users/practice",
+  isUserAuthenticated,
+  validate(PracticePatchSchema),
+  handleUpdatePracticeStatus
+);
+
+router.get(
+  "/users/practice",
+  isUserAuthenticated,
+  validate(PracticeQuerySchema),
+  //@ts-ignore
+  handleGetWordsPractice
+);
 
 router.get(
   "/users/dashboard",
