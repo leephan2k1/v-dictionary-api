@@ -16,7 +16,7 @@ import("./middlewares/passport");
 import("./middlewares/passportGoogleSSO");
 
 const app = express();
-const PORT = 5001;
+const PORT = process.env.PORT || 5001;
 
 app.use(
   session({
@@ -48,9 +48,11 @@ app.use(passport.initialize());
 // we don't need passport deserializeUser every route
 // just need for auth route
 app.use((req, res, next) => {
-  if (req.url.match("/api/words")) {
+  if (req.url.match("/api/words") || req.url.match("/api/service")) {
+    console.log("run next");
     next();
   } else {
+    console.log("handle cookie");
     passport.session()(req, res, next);
   }
 });
