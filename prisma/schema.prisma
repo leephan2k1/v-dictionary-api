@@ -141,6 +141,6 @@ model TranslationHistory {
 model Session {
   id        String   @id
   sid       String   @unique
-  data      String
+  data      String   @db.Text
   expiresAt DateTime
 }
