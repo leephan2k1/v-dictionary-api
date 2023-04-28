@@ -25,6 +25,7 @@ app.use(
     cookie: {
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days (ms)
       httpOnly: true,
+      domain: process.env.CLIENT_URL,
       secure: process.env.NODE_ENV === "production", //development can't serve https (SSL)
     },
     //@ts-ignore
