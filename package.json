@@ -22,6 +22,7 @@
     "http-errors": "^2.0.0",
     "node-html-parser": "^6.1.5",
     "passport": "^0.6.0",
+    "passport-facebook": "^3.0.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "zod": "^3.21.4"
@@ -35,6 +36,7 @@
     "@types/node": "18.15.11",
     "@types/node-fetch": "^2.6.3",
     "@types/passport": "^1.0.12",
+    "@types/passport-facebook": "^2.1.11",
     "@types/passport-google-oauth20": "^2.0.11",
     "@types/passport-jwt": "^3.0.8",
     "prisma": "^4.13.0",

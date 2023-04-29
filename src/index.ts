@@ -14,6 +14,7 @@ import type { NextFunction, Request, Response } from "express";
 
 import("./middlewares/passport");
 import("./middlewares/passportGoogleSSO");
+import("./middlewares/passportFacebookSSO");
 
 const app = express();
 const PORT = process.env.PORT || 5001;
