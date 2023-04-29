@@ -23,7 +23,7 @@ export async function getAudioOxford({ word }: { word: string }) {
         };
       });
 
-    return phonetics;
+    return phonetics ? phonetics.slice(0, 2) : phonetics;
   } catch (error) {
     console.error("get audio oxford error: ", error);
   }
