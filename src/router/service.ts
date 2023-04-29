@@ -1,5 +1,5 @@
 import type { NextFunction, Request, Response } from "express";
-
+import { updatePracticeStatus } from "../controllers/wordController";
 import Router from "express-promise-router";
 const router = Router();
 
@@ -19,5 +19,7 @@ router.get(
     return res.status(200).json({ message: "pong" });
   }
 );
+
+router.get("/service/update-practice-status", updatePracticeStatus);
 
 export default router;
