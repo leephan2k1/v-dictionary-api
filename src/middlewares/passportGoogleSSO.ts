@@ -51,6 +51,7 @@ passport.deserializeUser(async (id, cb) => {
         image: true,
         name: true,
         provider: true,
+        createdAt: true,
       },
     });
 
