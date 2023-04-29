@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "tsnd --respawn --clear src/index.ts",
     "build": "tsc -p .",
-    "start": "node dist/src",
+    "start": "node dist",
     "db": "npx prisma db push"
   },
   "dependencies": {
