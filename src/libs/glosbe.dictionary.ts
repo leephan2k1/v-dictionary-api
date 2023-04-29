@@ -170,18 +170,18 @@ export async function machineTranslation({
   word: string;
 }) {
   try {
-    const [glosbe, google] = await Promise.allSettled([
-      (
-        await axios.post(
-          `${GLOSBE_TRANSLATOR_API}/translateByLangWithScore?sourceLang=${language_1}&targetLang=${language_2}`,
-          word,
-          {
-            headers: {
-              "Content-Type": "text/plain;charset=UTF-8",
-            },
-          }
-        )
-      ).data,
+    const [google] = await Promise.allSettled([
+      // (
+      //   await axios.post(
+      //     `${GLOSBE_TRANSLATOR_API}/translateByLangWithScore?sourceLang=${language_1}&targetLang=${language_2}`,
+      //     word,
+      //     {
+      //       headers: {
+      //         "Content-Type": "text/plain;charset=UTF-8",
+      //       },
+      //     }
+      //   )
+      // ).data,
       await googleTranslate({
         text: word,
         source_language: language_1,
@@ -189,8 +189,8 @@ export async function machineTranslation({
       }),
     ]);
 
-    if (glosbe.status === "fulfilled" && google.status === "fulfilled") {
-      return { glosbe: glosbe.value?.translation, google: google.value };
+    if (google.status === "fulfilled") {
+      return { google: google.value };
     } else {
       return null;
     }
