@@ -182,6 +182,9 @@ export async function handleGetWordsPreview(
         },
         take: Number(limit),
         skip: (Number(page) - 1) * limit,
+        orderBy: {
+          createdAt: 'desc'
+        }
       }),
       prisma.practice.count({
         where: {
